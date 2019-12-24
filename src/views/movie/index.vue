@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <!-- 搜索 -->
     <div class="filter-container">
       <el-input
         v-model="listQuery.title"
@@ -8,9 +9,15 @@
         class="filter-item"
         @keyup.enter.native="handleFilter"
       />
+      <el-date-picker
+        v-model="listQuery.duration"
+        type="date"
+        placeholder="选择上映日期"
+      >
+      </el-date-picker>
       <el-select
         v-model="listQuery.type"
-        placeholder="类型"
+        placeholder="电影类型"
         clearable
         class="filter-item"
         style="width: 130px"
@@ -31,6 +38,7 @@
       >
         搜索
       </el-button>
+      <!-- 添加 -->
       <el-button
         class="filter-item"
         style="margin-left: 10px;"
@@ -42,17 +50,18 @@
       </el-button>
     </div>
 
+    <!-- 表格 -->
     <el-table
       :key="tableKey"
+      size="mini"
       v-loading="listLoading"
       :data="list"
       border
       fit
       highlight-current-row
       style="width: 100%;"
-      @sort-change="sortChange"
     >
-      <el-table-column label="ID" prop="id" align="center" width="80">
+      <el-table-column label="id" align="center" width="80">
         <template slot-scope="{ row }">
           <span>{{ row.id }}</span>
         </template>
@@ -60,55 +69,52 @@
 
       <el-table-column label="电影名称" min-width="150px">
         <template slot-scope="{ row }">
-          <span class="link-type" @click="handleUpdate(row)">{{
-            row.title
-          }}</span>
-          <el-tag>{{ row.type | typeFilter }}</el-tag>
+          <span class="link-type">{{ row.title }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="时长" prop="duration" align="center" width="80">
+        <template slot-scope="{ row }">
+          <span>{{ row.duration }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="上映日期" width="150px" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.timestamp | parseTime("{y}-{m}-{d} {h}:{i}") }}</span>
+          <span>{{ row.releaseDate | parseTime("{y}-{m}-{d} {h}:{i}") }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="Author" width="110px" align="center">
+      <el-table-column label="剧情" width="110px" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.author }}</span>
+          <span>{{ row.plot }}</span>
         </template>
       </el-table-column>
-      <el-table-column
-        v-if="showReviewer"
-        label="Reviewer"
-        width="110px"
-        align="center"
-      >
+
+      <el-table-column label="导演" width="110px" align="center">
         <template slot-scope="{ row }">
-          <span style="color:red;">{{ row.reviewer }}</span>
+          <span>{{ row.directors }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="评分" width="80px">
+
+      <el-table-column label="主演" width="110px" align="center">
         <template slot-scope="{ row }">
-          <svg-icon
-            v-for="n in +row.importance"
-            :key="n"
-            icon-class="star"
-            class="meta-item__icon"
-          />
+          <span>{{ row.actors }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Readings" align="center" width="95">
+
+      <el-table-column label="海报" width="110px" align="center">
         <template slot-scope="{ row }">
-          <span
-            v-if="row.pageviews"
-            class="link-type"
-            @click="handleFetchPv(row.pageviews)"
-            >{{ row.pageviews }}</span
-          >
-          <span v-else>0</span>
+          <span>{{ row.poster }}</span>
         </template>
       </el-table-column>
+
+      <el-table-column label="国家" width="110px" align="center">
+        <template slot-scope="{ row }">
+          <span>{{ row.country }}</span>
+        </template>
+      </el-table-column>
+
       <el-table-column label="状态" class-name="status-col" width="100">
         <template slot-scope="{ row }">
           <el-tag :type="row.status | statusFilter">
@@ -116,7 +122,15 @@
           </el-tag>
         </template>
       </el-table-column>
+
+      <el-table-column label="类别" width="110px" align="center">
+        <template slot-scope="{ row }">
+          <span>{{ row.categories }}</span>
+        </template>
+      </el-table-column>
+
       <el-table-column
+        fixed="right"
         label="操作"
         align="center"
         width="230"
@@ -126,21 +140,7 @@
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             修改
           </el-button>
-          <el-button
-            v-if="row.status != 'published'"
-            size="mini"
-            type="success"
-            @click="handleModifyStatus(row, 'published')"
-          >
-            Publish
-          </el-button>
-          <el-button
-            v-if="row.status != 'draft'"
-            size="mini"
-            @click="handleModifyStatus(row, 'draft')"
-          >
-            Draft
-          </el-button>
+
           <el-button
             v-if="row.status != 'deleted'"
             size="mini"
@@ -161,6 +161,7 @@
       @pagination="getList"
     />
 
+    <!-- 弹出框 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form
         ref="dataForm"
@@ -310,6 +311,7 @@ export default {
         limit: 20,
         importance: undefined,
         title: undefined,
+        duration: undefined,
         type: undefined
       },
       importanceOptions: [1, 2, 3],
@@ -373,12 +375,6 @@ export default {
         type: "success"
       });
       row.status = status;
-    },
-    sortChange(data) {
-      const { prop, order } = data;
-      if (prop === "id") {
-        this.sortByID(order);
-      }
     },
     resetTemp() {
       this.temp = {
