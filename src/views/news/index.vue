@@ -3,14 +3,28 @@
     <div class="filter-container">
       <el-input
         v-model="listQuery.title"
-        placeholder="请输入电影名称"
+        placeholder="Title"
         style="width: 200px;"
         class="filter-item"
         @keyup.enter.native="handleFilter"
       />
       <el-select
+        v-model="listQuery.importance"
+        placeholder="Imp"
+        clearable
+        style="width: 90px"
+        class="filter-item"
+      >
+        <el-option
+          v-for="item in importanceOptions"
+          :key="item"
+          :label="item"
+          :value="item"
+        />
+      </el-select>
+      <el-select
         v-model="listQuery.type"
-        placeholder="类型"
+        placeholder="Type"
         clearable
         class="filter-item"
         style="width: 130px"
@@ -22,6 +36,19 @@
           :value="item.key"
         />
       </el-select>
+      <el-select
+        v-model="listQuery.sort"
+        style="width: 140px"
+        class="filter-item"
+        @change="handleFilter"
+      >
+        <el-option
+          v-for="item in sortOptions"
+          :key="item.key"
+          :label="item.label"
+          :value="item.key"
+        />
+      </el-select>
       <el-button
         v-waves
         class="filter-item"
@@ -29,7 +56,7 @@
         icon="el-icon-search"
         @click="handleFilter"
       >
-        搜索
+        Search
       </el-button>
       <el-button
         class="filter-item"
@@ -38,8 +65,26 @@
         icon="el-icon-edit"
         @click="handleCreate"
       >
-        添加
+        Add
       </el-button>
+      <el-button
+        v-waves
+        :loading="downloadLoading"
+        class="filter-item"
+        type="primary"
+        icon="el-icon-download"
+        @click="handleDownload"
+      >
+        Export
+      </el-button>
+      <el-checkbox
+        v-model="showReviewer"
+        class="filter-item"
+        style="margin-left:15px;"
+        @change="tableKey = tableKey + 1"
+      >
+        reviewer
+      </el-checkbox>
     </div>
 
     <el-table
@@ -52,13 +97,24 @@
       style="width: 100%;"
       @sort-change="sortChange"
     >
-      <el-table-column label="ID" prop="id" align="center" width="80">
+      <el-table-column
+        label="ID"
+        prop="id"
+        sortable="custom"
+        align="center"
+        width="80"
+        :class-name="getSortClass('id')"
+      >
         <template slot-scope="{ row }">
           <span>{{ row.id }}</span>
         </template>
       </el-table-column>
-
-      <el-table-column label="电影名称" min-width="150px">
+      <el-table-column label="Date" width="150px" align="center">
+        <template slot-scope="{ row }">
+          <span>{{ row.timestamp | parseTime("{y}-{m}-{d} {h}:{i}") }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="Title" min-width="150px">
         <template slot-scope="{ row }">
           <span class="link-type" @click="handleUpdate(row)">{{
             row.title
@@ -66,13 +122,6 @@
           <el-tag>{{ row.type | typeFilter }}</el-tag>
         </template>
       </el-table-column>
-
-      <el-table-column label="上映日期" width="150px" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.timestamp | parseTime("{y}-{m}-{d} {h}:{i}") }}</span>
-        </template>
-      </el-table-column>
-
       <el-table-column label="Author" width="110px" align="center">
         <template slot-scope="{ row }">
           <span>{{ row.author }}</span>
@@ -88,7 +137,7 @@
           <span style="color:red;">{{ row.reviewer }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="评分" width="80px">
+      <el-table-column label="Imp" width="80px">
         <template slot-scope="{ row }">
           <svg-icon
             v-for="n in +row.importance"
@@ -109,7 +158,7 @@
           <span v-else>0</span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" class-name="status-col" width="100">
+      <el-table-column label="Status" class-name="status-col" width="100">
         <template slot-scope="{ row }">
           <el-tag :type="row.status | statusFilter">
             {{ row.status }}
@@ -117,14 +166,14 @@
         </template>
       </el-table-column>
       <el-table-column
-        label="操作"
+        label="Actions"
         align="center"
         width="230"
         class-name="small-padding fixed-width"
       >
         <template slot-scope="{ row }">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
-            修改
+            Edit
           </el-button>
           <el-button
             v-if="row.status != 'published'"
@@ -147,7 +196,7 @@
             type="danger"
             @click="handleModifyStatus(row, 'deleted')"
           >
-            删除
+            Delete
           </el-button>
         </template>
       </el-table-column>
@@ -227,13 +276,13 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">
-          取消
+          Cancel
         </el-button>
         <el-button
           type="primary"
           @click="dialogStatus === 'create' ? createData() : updateData()"
         >
-          确认
+          Confirm
         </el-button>
       </div>
     </el-dialog>
@@ -251,7 +300,7 @@
       </el-table>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="dialogPvVisible = false"
-          >确认</el-button
+          >Confirm</el-button
         >
       </span>
     </el-dialog>
@@ -283,7 +332,7 @@ const calendarTypeKeyValue = calendarTypeOptions.reduce((acc, cur) => {
 }, {});
 
 export default {
-  name: "movie",
+  name: "ComplexTable",
   components: { Pagination },
   directives: { waves },
   filters: {
@@ -310,11 +359,17 @@ export default {
         limit: 20,
         importance: undefined,
         title: undefined,
-        type: undefined
+        type: undefined,
+        sort: "+id"
       },
       importanceOptions: [1, 2, 3],
       calendarTypeOptions,
+      sortOptions: [
+        { label: "ID Ascending", key: "+id" },
+        { label: "ID Descending", key: "-id" }
+      ],
       statusOptions: ["published", "draft", "deleted"],
+      showReviewer: false,
       temp: {
         id: undefined,
         importance: 1,
@@ -347,7 +402,8 @@ export default {
         title: [
           { required: true, message: "title is required", trigger: "blur" }
         ]
-      }
+      },
+      downloadLoading: false
     };
   },
   created() {
@@ -355,12 +411,15 @@ export default {
   },
   methods: {
     getList() {
-      this.listLoading = false;
-      // this.listLoading = true;
+      this.listLoading = true;
       fetchList(this.listQuery).then(response => {
-        this.list = response.data.list;
+        this.list = response.data.items;
         this.total = response.data.total;
-        this.listLoading = false;
+
+        // Just to simulate the time of the request
+        setTimeout(() => {
+          this.listLoading = false;
+        }, 1.5 * 1000);
       });
     },
     handleFilter() {
@@ -379,6 +438,14 @@ export default {
       if (prop === "id") {
         this.sortByID(order);
       }
+    },
+    sortByID(order) {
+      if (order === "ascending") {
+        this.listQuery.sort = "+id";
+      } else {
+        this.listQuery.sort = "-id";
+      }
+      this.handleFilter();
     },
     resetTemp() {
       this.temp = {
@@ -466,6 +533,26 @@ export default {
         this.dialogPvVisible = true;
       });
     },
+    handleDownload() {
+      this.downloadLoading = true;
+      import("@/vendor/Export2Excel").then(excel => {
+        const tHeader = ["timestamp", "title", "type", "importance", "status"];
+        const filterVal = [
+          "timestamp",
+          "title",
+          "type",
+          "importance",
+          "status"
+        ];
+        const data = this.formatJson(filterVal, this.list);
+        excel.export_json_to_excel({
+          header: tHeader,
+          data,
+          filename: "table-list"
+        });
+        this.downloadLoading = false;
+      });
+    },
     formatJson(filterVal, jsonData) {
       return jsonData.map(v =>
         filterVal.map(j => {
@@ -476,6 +563,14 @@ export default {
           }
         })
       );
+    },
+    getSortClass: function(key) {
+      const sort = this.listQuery.sort;
+      return sort === `+${key}`
+        ? "ascending"
+        : sort === `-${key}`
+        ? "descending"
+        : "";
     }
   }
 };

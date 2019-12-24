@@ -38,12 +38,6 @@ export const constantRoutes = [
   },
 
   {
-    path: "/404",
-    component: () => import("@/views/404"),
-    hidden: true
-  },
-
-  {
     path: "/",
     component: Layout,
     redirect: "/dashboard",
@@ -58,7 +52,7 @@ export const constantRoutes = [
   },
 
   {
-    path: "/movies",
+    path: "/movie",
     component: Layout,
     children: [
       {
@@ -69,7 +63,36 @@ export const constantRoutes = [
       }
     ]
   },
+  {
+    path: "/category",
+    component: Layout,
+    children: [
+      {
+        path: "index",
+        name: "Form",
+        component: () => import("@/views/category/index"),
+        meta: { title: "类别管理", icon: "form" }
+      }
+    ]
+  },
+  {
+    path: "/scene",
+    component: Layout,
+    children: [
+      {
+        path: "index",
+        name: "Form",
+        component: () => import("@/views/scene/index"),
+        meta: { title: "场次管理", icon: "form" }
+      }
+    ]
+  },
 
+  {
+    path: "/404",
+    component: () => import("@/views/404"),
+    hidden: true
+  },
   // 404 page must be placed at the end !!!
   { path: "*", redirect: "/404", hidden: true }
 ];
