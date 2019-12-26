@@ -16,16 +16,18 @@
       >
       </el-date-picker>
       <el-select
-        v-model="listQuery.type"
+        v-model="listQuery.categories"
         placeholder="电影类型"
+        multiple
         clearable
-        style="width: 130px"
+        filterable
+        style="width: 200px"
       >
         <el-option
-          v-for="item in statusOptions"
-          :key="item.key"
-          :label="item.label"
-          :value="item.value"
+          v-for="item in categoryOptions"
+          :key="item.id"
+          :label="item.name"
+          :value="item.id"
         />
       </el-select>
       <el-select
@@ -171,7 +173,7 @@
     <el-dialog
       :title="textMap[dialogStatus]"
       :visible.sync="dialogFormVisible"
-      top="7vh"
+      top="2vh"
     >
       <el-form
         ref="dataForm"
@@ -255,9 +257,9 @@
           >
             <el-option
               v-for="item in categoryOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
             />
           </el-select>
         </el-form-item>
@@ -278,18 +280,19 @@
 </template>
 
 <script>
-import { fetchList, createMovie, updateMovie, deleteMovie } from "@/api/movie";
+import {
+  fetchList,
+  createMovie,
+  updateMovie,
+  deleteMovie,
+  fetchCategoryList
+} from "@/api/movie";
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
 
 //状态下拉框选项
 const statusOptions = [
   { id: 1, label: "下架", value: 0 },
   { id: 2, label: "上架", value: 1 }
-];
-
-const categoryOptions = [
-  { label: "动作", value: 1 },
-  { label: "犯罪", value: 2 }
 ];
 
 export default {
@@ -326,12 +329,12 @@ export default {
         name: undefined,
         status: undefined,
         duration: undefined,
-        type: undefined
+        categories: undefined
       },
       // 状态下拉框数据
       statusOptions,
-      categoryOptions,
-      // 弹出框对象
+      categoryOptions: [],
+      // 弹出框临时对象
       temp: {
         id: undefined,
         name: undefined,
@@ -370,21 +373,39 @@ export default {
   },
   created() {
     this.getList();
+    this.getCategoryList();
   },
   methods: {
     getList() {
-      this.listLoading = false;
-      // this.listLoading = true;
+      this.listLoading = true;
       fetchList(this.listQuery).then(response => {
         this.list = response.data.list;
         this.total = response.data.total;
         this.listLoading = false;
       });
     },
+    getCategoryList() {
+      fetchCategoryList().then(response => {
+        this.categoryOptions = response.data;
+      });
+    },
     handleFilter() {
       this.listQuery.page = 1;
       this.getList();
+      this.resetListQuery();
     },
+    // 重置查询对象
+    resetListQuery() {
+      this.listQuery = {
+        page: 1,
+        size: 20,
+        name: undefined,
+        status: undefined,
+        duration: undefined,
+        categories: []
+      };
+    },
+    // 重置临时对象
     resetTemp() {
       this.temp = {
         id: undefined,
