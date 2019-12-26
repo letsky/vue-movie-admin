@@ -189,12 +189,17 @@
           <el-upload
             class="avatar-uploader"
             :action="uploadUrl"
+            :name="file"
+            :limit="1"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
           >
             <img v-if="temp.poster" :src="temp.poster" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <div class="el-upload__tip" slot="tip">
+              只能上传jpg/png文件，且不超过500kb
+            </div>
           </el-upload>
         </el-form-item>
 
@@ -246,6 +251,7 @@
           <el-select
             v-model="temp.categories"
             multiple
+            filterable
             placeholder="请选择类别"
           >
             <el-option
@@ -344,7 +350,7 @@ export default {
       dialogStatus: "",
       textMap: { update: "修改", create: "创建" },
       // 上传图片的接口地址
-      uploadUrl: "",
+      uploadUrl: "http://127.0.0.1:8080/api/upload",
       rules: {
         type: [
           { required: true, message: "type is required", trigger: "change" }
@@ -458,7 +464,7 @@ export default {
       this.list.splice(index, 1);
     },
     handleAvatarSuccess(res, file) {
-      this.imageUrl = URL.createObjectURL(file.raw);
+      this.temp.poster = URL.createObjectURL(file.raw);
     },
     beforeAvatarUpload(file) {
       // const isJPG = file.type === "image/jpeg";
@@ -506,5 +512,8 @@ export default {
   width: 178px;
   height: 178px;
   display: block;
+}
+.el-upload__tip {
+  font-size: 12px;
 }
 </style>
