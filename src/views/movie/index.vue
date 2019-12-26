@@ -189,7 +189,6 @@
           <el-upload
             class="avatar-uploader"
             :action="uploadUrl"
-            :name="file"
             :limit="1"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
@@ -279,7 +278,7 @@
 </template>
 
 <script>
-import { fetchList } from "@/api/movie";
+import { fetchList, createMovie, updateMovie, deleteMovie } from "@/api/movie";
 import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
 
 //状态下拉框选项
@@ -401,7 +400,7 @@ export default {
         categories: []
       };
     },
-    // 添加按钮
+    // 点击添加按钮
     handleCreate() {
       this.resetTemp();
       this.dialogStatus = "create";
@@ -410,22 +409,30 @@ export default {
         this.$refs["dataForm"].clearValidate();
       });
     },
+    // 创建新数据
     createData() {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
           console.log(tempData);
-          this.dialogFormVisible = false;
-          this.$notify({
-            title: "Success",
-            message: "Created Successfully",
-            type: "success",
-            duration: 2000
-          });
+          createMovie(tempData)
+            .then(response => {
+              console.log(response);
+              this.dialogFormVisible = false;
+              this.$notify({
+                title: "Success",
+                message: "Created Successfully",
+                type: "success",
+                duration: 2000
+              });
+            })
+            .catch(error => {
+              console.log(error);
+            });
         }
       });
     },
-    //更新按钮
+    // 点击编辑按钮
     handleUpdate(row) {
       this.temp = Object.assign({}, row); // copy obj
       console.log(this.temp);
@@ -437,31 +444,44 @@ export default {
         this.$refs["dataForm"].clearValidate();
       });
     },
+    // 更新数据
     updateData() {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
           console.log(tempData);
-          this.dialogFormVisible = false;
-          this.$notify({
-            title: "Success",
-            message: "Update Successfully",
-            type: "success",
-            duration: 2000
-          });
+          updateMovie(tempData.id, tempData)
+            .then(response => {
+              // 关闭对话框
+              this.dialogFormVisible = false;
+              this.$notify({
+                title: "Success",
+                message: "Update Successfully",
+                type: "success",
+                duration: 2000
+              });
+            })
+            .catch(error => {
+              console.log(error);
+            });
         }
       });
     },
     // 删除按钮
     handleDelete(row) {
-      this.$notify({
-        title: "Success",
-        message: "Delete Successfully",
-        type: "success",
-        duration: 2000
-      });
-      const index = this.list.indexOf(row);
-      this.list.splice(index, 1);
+      const movieId = row.id;
+      deleteMovie(movieId)
+        .then(response => {
+          this.$notify({
+            title: "Success",
+            message: "Delete Successfully",
+            type: "success",
+            duration: 2000
+          });
+          const index = this.list.indexOf(row);
+          this.list.splice(index, 1);
+        })
+        .catch(error => console.log(error));
     },
     handleAvatarSuccess(res, file) {
       this.temp.poster = URL.createObjectURL(file.raw);
