@@ -1,5 +1,5 @@
 <template>
-  <div :class="{'hidden':hidden}" class="pagination-container">
+  <div :class="{ hidden: hidden }" class="pagination-container">
     <el-pagination
       :background="background"
       :current-page.sync="currentPage"
@@ -15,10 +15,10 @@
 </template>
 
 <script>
-import { scrollTo } from '@/utils/scroll-to'
+import { scrollTo } from "@/utils/scroll-to";
 
 export default {
-  name: 'Pagination',
+  name: "Pagination",
   props: {
     total: {
       required: true,
@@ -28,19 +28,19 @@ export default {
       type: Number,
       default: 1
     },
-    limit: {
+    size: {
       type: Number,
       default: 20
     },
     pageSizes: {
       type: Array,
       default() {
-        return [10, 20, 30, 50]
+        return [10, 20, 30, 50];
       }
     },
     layout: {
       type: String,
-      default: 'total, sizes, prev, pager, next, jumper'
+      default: "total, sizes, prev, pager, next, jumper"
     },
     background: {
       type: Boolean,
@@ -58,36 +58,36 @@ export default {
   computed: {
     currentPage: {
       get() {
-        return this.page
+        return this.page;
       },
       set(val) {
-        this.$emit('update:page', val)
+        this.$emit("update:page", val);
       }
     },
     pageSize: {
       get() {
-        return this.limit
+        return this.size;
       },
       set(val) {
-        this.$emit('update:limit', val)
+        this.$emit("update:size", val);
       }
     }
   },
   methods: {
     handleSizeChange(val) {
-      this.$emit('pagination', { page: this.currentPage, limit: val })
+      this.$emit("pagination", { page: this.currentPage, size: val });
       if (this.autoScroll) {
-        scrollTo(0, 800)
+        scrollTo(0, 800);
       }
     },
     handleCurrentChange(val) {
-      this.$emit('pagination', { page: val, limit: this.pageSize })
+      this.$emit("pagination", { page: val, size: this.pageSize });
       if (this.autoScroll) {
-        scrollTo(0, 800)
+        scrollTo(0, 800);
       }
     }
   }
-}
+};
 </script>
 
 <style scoped>
