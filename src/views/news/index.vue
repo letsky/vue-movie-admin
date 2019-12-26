@@ -1,63 +1,57 @@
 <template>
   <div class="app-container">
+    <!-- 搜索 -->
     <div class="filter-container">
       <el-input
-        v-model="listQuery.title"
-        placeholder="Title"
+        v-model="listQuery.name"
+        placeholder="请输入电影名称"
         style="width: 200px;"
         class="filter-item"
         @keyup.enter.native="handleFilter"
       />
+      <el-date-picker
+        v-model="listQuery.createTime"
+        type="date"
+        placeholder="创建时间"
+      >
+      </el-date-picker>
       <el-select
-        v-model="listQuery.importance"
-        placeholder="Imp"
+        v-model="listQuery.categories"
+        placeholder="电影类型"
+        multiple
         clearable
-        style="width: 90px"
-        class="filter-item"
+        filterable
+        style="width: 200px"
       >
         <el-option
-          v-for="item in importanceOptions"
-          :key="item"
-          :label="item"
-          :value="item"
+          v-for="item in categoryOptions"
+          :key="item.id"
+          :label="item.name"
+          :value="item.id"
         />
       </el-select>
       <el-select
-        v-model="listQuery.type"
-        placeholder="Type"
+        v-model="listQuery.status"
+        placeholder="状态"
         clearable
-        class="filter-item"
         style="width: 130px"
       >
         <el-option
-          v-for="item in calendarTypeOptions"
-          :key="item.key"
-          :label="item.display_name + '(' + item.key + ')'"
-          :value="item.key"
-        />
-      </el-select>
-      <el-select
-        v-model="listQuery.sort"
-        style="width: 140px"
-        class="filter-item"
-        @change="handleFilter"
-      >
-        <el-option
-          v-for="item in sortOptions"
+          v-for="item in statusOptions"
           :key="item.key"
           :label="item.label"
-          :value="item.key"
+          :value="item.value"
         />
       </el-select>
       <el-button
-        v-waves
         class="filter-item"
         type="primary"
         icon="el-icon-search"
         @click="handleFilter"
       >
-        Search
+        搜索
       </el-button>
+      <!-- 添加 -->
       <el-button
         class="filter-item"
         style="margin-left: 10px;"
@@ -65,138 +59,89 @@
         icon="el-icon-edit"
         @click="handleCreate"
       >
-        Add
+        添加
       </el-button>
-      <el-button
-        v-waves
-        :loading="downloadLoading"
-        class="filter-item"
-        type="primary"
-        icon="el-icon-download"
-        @click="handleDownload"
-      >
-        Export
-      </el-button>
-      <el-checkbox
-        v-model="showReviewer"
-        class="filter-item"
-        style="margin-left:15px;"
-        @change="tableKey = tableKey + 1"
-      >
-        reviewer
-      </el-checkbox>
     </div>
 
+    <!-- 表格 -->
     <el-table
       :key="tableKey"
+      size="mini"
       v-loading="listLoading"
       :data="list"
       border
       fit
       highlight-current-row
       style="width: 100%;"
-      @sort-change="sortChange"
     >
       <el-table-column
-        label="ID"
-        prop="id"
-        sortable="custom"
+        type="selection"
+        width="40"
         align="center"
-        width="80"
-        :class-name="getSortClass('id')"
-      >
+      ></el-table-column>
+
+      <el-table-column label="id" align="center" width="50">
         <template slot-scope="{ row }">
           <span>{{ row.id }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Date" width="150px" align="center">
+
+      <el-table-column label="电影名称" width="400">
         <template slot-scope="{ row }">
-          <span>{{ row.timestamp | parseTime("{y}-{m}-{d} {h}:{i}") }}</span>
+          <span class="link-type">{{ row.name }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Title" min-width="150px">
+
+      <el-table-column label="时长" align="center" width="50">
         <template slot-scope="{ row }">
-          <span class="link-type" @click="handleUpdate(row)">{{
-            row.title
-          }}</span>
-          <el-tag>{{ row.type | typeFilter }}</el-tag>
+          <span>{{ row.duration }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Author" width="110px" align="center">
+
+      <el-table-column label="上映日期" width="150" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.author }}</span>
+          <span>{{ row.releaseDate }}</span>
         </template>
       </el-table-column>
-      <el-table-column
-        v-if="showReviewer"
-        label="Reviewer"
-        width="110px"
-        align="center"
-      >
+
+      <el-table-column label="导演" width="110" align="center">
         <template slot-scope="{ row }">
-          <span style="color:red;">{{ row.reviewer }}</span>
+          <span>{{ row.directors }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Imp" width="80px">
+
+      <el-table-column label="主演" width="200" align="center">
         <template slot-scope="{ row }">
-          <svg-icon
-            v-for="n in +row.importance"
-            :key="n"
-            icon-class="star"
-            class="meta-item__icon"
-          />
+          <span>{{ row.actors }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Readings" align="center" width="95">
+
+      <el-table-column label="国家" width="110px" align="center">
         <template slot-scope="{ row }">
-          <span
-            v-if="row.pageviews"
-            class="link-type"
-            @click="handleFetchPv(row.pageviews)"
-            >{{ row.pageviews }}</span
-          >
-          <span v-else>0</span>
+          <span>{{ row.country }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Status" class-name="status-col" width="100">
+
+      <el-table-column label="状态" align="center" width="80">
         <template slot-scope="{ row }">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status }}
-          </el-tag>
+          <el-tag>{{ row.status | statusFilter }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column
-        label="Actions"
-        align="center"
-        width="230"
-        class-name="small-padding fixed-width"
-      >
+
+      <el-table-column label="类别" align="center">
+        <template slot-scope="{ row }">
+          <span>{{ row.categories | categoryFilter }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column fixed="right" label="操作" width="150" align="center">
         <template slot-scope="{ row }">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
-            Edit
+            修改
           </el-button>
-          <el-button
-            v-if="row.status != 'published'"
-            size="mini"
-            type="success"
-            @click="handleModifyStatus(row, 'published')"
-          >
-            Publish
-          </el-button>
-          <el-button
-            v-if="row.status != 'draft'"
-            size="mini"
-            @click="handleModifyStatus(row, 'draft')"
-          >
-            Draft
-          </el-button>
-          <el-button
-            v-if="row.status != 'deleted'"
-            size="mini"
-            type="danger"
-            @click="handleModifyStatus(row, 'deleted')"
-          >
-            Delete
+
+          <el-button size="mini" type="danger" @click="handleDelete(row)">
+            删除
           </el-button>
         </template>
       </el-table-column>
@@ -206,187 +151,175 @@
       v-show="total > 0"
       :total="total"
       :page.sync="listQuery.page"
-      :limit.sync="listQuery.limit"
+      :size.sync="listQuery.size"
       @pagination="getList"
     />
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
+    <!-- 创建/更新 弹出框 -->
+    <el-dialog
+      :title="textMap[dialogStatus]"
+      :visible.sync="dialogFormVisible"
+      top="2vh"
+    >
       <el-form
         ref="dataForm"
         :rules="rules"
         :model="temp"
         label-position="left"
         label-width="70px"
-        style="width: 400px; margin-left:50px;"
+        style="margin-left:20px;"
       >
-        <el-form-item label="Type" prop="type">
-          <el-select
-            v-model="temp.type"
-            class="filter-item"
-            placeholder="Please select"
-          >
-            <el-option
-              v-for="item in calendarTypeOptions"
-              :key="item.key"
-              :label="item.display_name"
-              :value="item.key"
-            />
-          </el-select>
+        <el-form-item label="电影名称" prop="name">
+          <el-input v-model="temp.name" placeholder="请输入电影名称" />
         </el-form-item>
-        <el-form-item label="Date" prop="timestamp">
+
+        <el-form-item label="海报" prop="poster">
+          <el-upload
+            class="avatar-uploader"
+            :action="uploadUrl"
+            :limit="1"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
+          >
+            <img v-if="temp.poster" :src="temp.poster" class="avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <div class="el-upload__tip" slot="tip">
+              只能上传jpg/png文件，且不超过500kb
+            </div>
+          </el-upload>
+        </el-form-item>
+
+        <el-form-item label="时长" prop="duration">
+          <el-input-number v-model="temp.duration" :min="0" />
+        </el-form-item>
+
+        <el-form-item label="主演" prop="actors">
+          <el-input v-model="temp.actors" placeholder="请输入主演" />
+        </el-form-item>
+
+        <el-form-item label="导演" prop="directors">
+          <el-input v-model="temp.directors" placeholder="请输入导演" />
+        </el-form-item>
+
+        <el-form-item label="上映日期" prop="releaseDate">
           <el-date-picker
-            v-model="temp.timestamp"
-            type="datetime"
-            placeholder="Please pick a date"
+            v-model="temp.releaseDate"
+            type="date"
+            placeholder="请输入上映日期"
           />
         </el-form-item>
-        <el-form-item label="Title" prop="title">
-          <el-input v-model="temp.title" />
+
+        <el-form-item label="剧情" prop="plot">
+          <el-input
+            v-model="temp.plot"
+            placeholder="请输入剧情"
+            type="textarea"
+            :autosize="{ minRows: 2, maxRows: 4 }"
+          />
         </el-form-item>
-        <el-form-item label="Status">
-          <el-select
-            v-model="temp.status"
-            class="filter-item"
-            placeholder="Please select"
-          >
+
+        <el-form-item label="国家" prop="country">
+          <el-input v-model="temp.country" placeholder="请输入国家" />
+        </el-form-item>
+
+        <el-form-item label="上映状态" prop="status">
+          <el-select v-model="temp.status" placeholder="请选择状态">
             <el-option
               v-for="item in statusOptions"
-              :key="item"
-              :label="item"
-              :value="item"
+              :key="item.id"
+              :label="item.label"
+              :value="item.value"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Imp">
-          <el-rate
-            v-model="temp.importance"
-            :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
-            :max="3"
-            style="margin-top:8px;"
-          />
-        </el-form-item>
-        <el-form-item label="Remark">
-          <el-input
-            v-model="temp.remark"
-            :autosize="{ minRows: 2, maxRows: 4 }"
-            type="textarea"
-            placeholder="Please input"
-          />
+
+        <el-form-item label="类别">
+          <el-select
+            v-model="temp.categories"
+            multiple
+            filterable
+            placeholder="请选择类别"
+          >
+            <el-option
+              v-for="item in categoryOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">
-          Cancel
+          取消
         </el-button>
         <el-button
           type="primary"
           @click="dialogStatus === 'create' ? createData() : updateData()"
         >
-          Confirm
+          确认
         </el-button>
       </div>
-    </el-dialog>
-
-    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics">
-      <el-table
-        :data="pvData"
-        border
-        fit
-        highlight-current-row
-        style="width: 100%"
-      >
-        <el-table-column prop="key" label="Channel" />
-        <el-table-column prop="pv" label="Pv" />
-      </el-table>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="dialogPvVisible = false"
-          >Confirm</el-button
-        >
-      </span>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import {
-  fetchList,
-  fetchPv,
-  createArticle,
-  updateArticle
-} from "@/api/article";
-import waves from "@/directive/waves"; // waves directive
-import { parseTime } from "@/utils";
-import Pagination from "@/components/Pagination"; // secondary package based on el-pagination
+import { fetchList, createNews, updateNews, deleteNews } from "@/api/news";
+import Pagination from "@/components/Pagination";
 
-const calendarTypeOptions = [
-  { key: "CN", display_name: "China" },
-  { key: "US", display_name: "USA" },
-  { key: "JP", display_name: "Japan" },
-  { key: "EU", display_name: "Eurozone" }
+//状态下拉框选项
+const statusOptions = [
+  { id: 1, label: "下架", value: 0 },
+  { id: 2, label: "上架", value: 1 }
 ];
 
-// arr to obj, such as { CN : "China", US : "USA" }
-const calendarTypeKeyValue = calendarTypeOptions.reduce((acc, cur) => {
-  acc[cur.key] = cur.display_name;
-  return acc;
-}, {});
-
 export default {
-  name: "ComplexTable",
+  name: "movie",
   components: { Pagination },
-  directives: { waves },
   filters: {
+    //转换状态
     statusFilter(status) {
       const statusMap = {
-        published: "success",
-        draft: "info",
-        deleted: "danger"
+        0: "下架",
+        1: "上架"
       };
       return statusMap[status];
     },
-    typeFilter(type) {
-      return calendarTypeKeyValue[type];
+    //转换类别
+    categoryFilter(categories) {
+      return categories.map(c => c.name).join(",");
     }
   },
+  computed: {},
   data() {
     return {
       tableKey: 0,
+      // 列表数据
       list: null,
+      // 总数
       total: 0,
+      // 加载提示框
       listLoading: true,
+      // 查询参数
       listQuery: {
         page: 1,
-        limit: 20,
-        importance: undefined,
+        size: 20,
         title: undefined,
-        type: undefined,
-        sort: "+id"
+        content: undefined,
+        createTime: undefined
       },
-      importanceOptions: [1, 2, 3],
-      calendarTypeOptions,
-      sortOptions: [
-        { label: "ID Ascending", key: "+id" },
-        { label: "ID Descending", key: "-id" }
-      ],
-      statusOptions: ["published", "draft", "deleted"],
-      showReviewer: false,
+      // 弹出框临时对象
       temp: {
         id: undefined,
-        importance: 1,
-        remark: "",
-        timestamp: new Date(),
-        title: "",
-        type: "",
-        status: "published"
+        title: undefined,
+        content: undefined,
+        createTime: new Date()
       },
       dialogFormVisible: false,
       dialogStatus: "",
-      textMap: {
-        update: "Edit",
-        create: "Create"
-      },
-      dialogPvVisible: false,
-      pvData: [],
+      textMap: { update: "修改", create: "创建" },
       rules: {
         type: [
           { required: true, message: "type is required", trigger: "change" }
@@ -402,8 +335,7 @@ export default {
         title: [
           { required: true, message: "title is required", trigger: "blur" }
         ]
-      },
-      downloadLoading: false
+      }
     };
   },
   created() {
@@ -413,51 +345,44 @@ export default {
     getList() {
       this.listLoading = true;
       fetchList(this.listQuery).then(response => {
-        this.list = response.data.items;
+        this.list = response.data.list;
         this.total = response.data.total;
-
-        // Just to simulate the time of the request
-        setTimeout(() => {
-          this.listLoading = false;
-        }, 1.5 * 1000);
+        this.listLoading = false;
       });
     },
     handleFilter() {
       this.listQuery.page = 1;
       this.getList();
+      this.resetListQuery();
     },
-    handleModifyStatus(row, status) {
-      this.$message({
-        message: "操作Success",
-        type: "success"
-      });
-      row.status = status;
+    // 重置查询对象
+    resetListQuery() {
+      this.listQuery = {
+        page: 1,
+        size: 20,
+        name: undefined,
+        status: undefined,
+        duration: undefined,
+        categories: []
+      };
     },
-    sortChange(data) {
-      const { prop, order } = data;
-      if (prop === "id") {
-        this.sortByID(order);
-      }
-    },
-    sortByID(order) {
-      if (order === "ascending") {
-        this.listQuery.sort = "+id";
-      } else {
-        this.listQuery.sort = "-id";
-      }
-      this.handleFilter();
-    },
+    // 重置临时对象
     resetTemp() {
       this.temp = {
         id: undefined,
-        importance: 1,
-        remark: "",
-        timestamp: new Date(),
-        title: "",
-        status: "published",
-        type: ""
+        name: undefined,
+        duration: 0,
+        directors: undefined,
+        actors: undefined,
+        releaseDate: new Date(),
+        plot: undefined,
+        poster: undefined,
+        country: undefined,
+        status: 0,
+        categories: []
       };
     },
+    // 点击添加按钮
     handleCreate() {
       this.resetTemp();
       this.dialogStatus = "create";
@@ -466,111 +391,79 @@ export default {
         this.$refs["dataForm"].clearValidate();
       });
     },
+    // 创建新数据
     createData() {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          this.temp.id = parseInt(Math.random() * 100) + 1024; // mock a id
-          this.temp.author = "vue-element-admin";
-          createArticle(this.temp).then(() => {
-            this.list.unshift(this.temp);
-            this.dialogFormVisible = false;
-            this.$notify({
-              title: "Success",
-              message: "Created Successfully",
-              type: "success",
-              duration: 2000
+          const tempData = Object.assign({}, this.temp);
+          console.log(tempData);
+          createMovie(tempData)
+            .then(response => {
+              console.log(response);
+              this.dialogFormVisible = false;
+              this.$notify({
+                title: "Success",
+                message: "Created Successfully",
+                type: "success",
+                duration: 2000
+              });
+            })
+            .catch(error => {
+              console.log(error);
             });
-          });
         }
       });
     },
+    // 点击编辑按钮
     handleUpdate(row) {
       this.temp = Object.assign({}, row); // copy obj
-      this.temp.timestamp = new Date(this.temp.timestamp);
+      console.log(this.temp);
+      const c = this.temp.categories;
+      this.temp.categories = c.map(e => e.id);
       this.dialogStatus = "update";
       this.dialogFormVisible = true;
       this.$nextTick(() => {
         this.$refs["dataForm"].clearValidate();
       });
     },
+    // 更新数据
     updateData() {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
-          tempData.timestamp = +new Date(tempData.timestamp); // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-          updateArticle(tempData).then(() => {
-            for (const v of this.list) {
-              if (v.id === this.temp.id) {
-                const index = this.list.indexOf(v);
-                this.list.splice(index, 1, this.temp);
-                break;
-              }
-            }
-            this.dialogFormVisible = false;
-            this.$notify({
-              title: "Success",
-              message: "Update Successfully",
-              type: "success",
-              duration: 2000
+          console.log(tempData);
+          updateMovie(tempData.id, tempData)
+            .then(response => {
+              // 关闭对话框
+              this.dialogFormVisible = false;
+              this.$notify({
+                title: "Success",
+                message: "Update Successfully",
+                type: "success",
+                duration: 2000
+              });
+            })
+            .catch(error => {
+              console.log(error);
             });
-          });
         }
       });
     },
+    // 删除按钮
     handleDelete(row) {
-      this.$notify({
-        title: "Success",
-        message: "Delete Successfully",
-        type: "success",
-        duration: 2000
-      });
-      const index = this.list.indexOf(row);
-      this.list.splice(index, 1);
-    },
-    handleFetchPv(pv) {
-      fetchPv(pv).then(response => {
-        this.pvData = response.data.pvData;
-        this.dialogPvVisible = true;
-      });
-    },
-    handleDownload() {
-      this.downloadLoading = true;
-      import("@/vendor/Export2Excel").then(excel => {
-        const tHeader = ["timestamp", "title", "type", "importance", "status"];
-        const filterVal = [
-          "timestamp",
-          "title",
-          "type",
-          "importance",
-          "status"
-        ];
-        const data = this.formatJson(filterVal, this.list);
-        excel.export_json_to_excel({
-          header: tHeader,
-          data,
-          filename: "table-list"
-        });
-        this.downloadLoading = false;
-      });
-    },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v =>
-        filterVal.map(j => {
-          if (j === "timestamp") {
-            return parseTime(v[j]);
-          } else {
-            return v[j];
-          }
+      const movieId = row.id;
+      deleteMovie(movieId)
+        .then(response => {
+          this.$notify({
+            title: "Success",
+            message: "Delete Successfully",
+            type: "success",
+            duration: 2000
+          });
+          const index = this.list.indexOf(row);
+          this.list.splice(index, 1);
         })
-      );
-    },
-    getSortClass: function(key) {
-      const sort = this.listQuery.sort;
-      return sort === `+${key}`
-        ? "ascending"
-        : sort === `-${key}`
-        ? "descending"
-        : "";
+        .catch(error => console.log(error));
     }
   }
 };
