@@ -7,7 +7,10 @@ export function fetchList(query) {
     url: "/movies",
     method: "get",
     // 解决数组后面带[]的问题
-    params: qs.stringify(query, { arrayFormat: "repeat" })
+    params: query,
+    paramsSerializer: params => {
+      return qs.stringify(params, { indices: false });
+    }
   });
 }
 
