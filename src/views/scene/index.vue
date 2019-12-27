@@ -122,10 +122,10 @@
         :rules="rules"
         :model="temp"
         label-position="left"
-        label-width="70px"
+        label-width="80px"
         style="margin-left: 20px;"
       >
-        <el-form-item label="电影" prop="movieName">
+        <el-form-item label="电影" prop="movieId">
           <el-select v-model="temp.movieId" placeholder="请输入电影名称">
             <el-option
               v-for="item in movieOptions"
@@ -210,19 +210,16 @@ export default {
       dialogStatus: "",
       textMap: { update: "修改", create: "创建" },
       rules: {
-        type: [
-          { required: true, message: "type is required", trigger: "change" }
-        ],
-        timestamp: [
+        movieId: [{ required: true, message: "电影必填", trigger: "change" }],
+        price: [{ required: true, message: "价格必填", trigger: "blur" }],
+        seatNum: [{ required: true, message: "价格必填", trigger: "blur" }],
+        showtime: [
           {
             type: "date",
             required: true,
-            message: "timestamp is required",
+            message: "上映时间必填",
             trigger: "change"
           }
-        ],
-        title: [
-          { required: true, message: "title is required", trigger: "blur" }
         ]
       }
     };
@@ -267,7 +264,7 @@ export default {
         movieName: undefined,
         price: undefined,
         seatNum: 166,
-        showtime: new Date(),
+        showtime: undefined,
         bookedSeat: undefined
       };
     },

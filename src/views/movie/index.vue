@@ -180,7 +180,7 @@
         :rules="rules"
         :model="temp"
         label-position="left"
-        label-width="70px"
+        label-width="80px"
         style="margin-left:20px;"
       >
         <el-form-item label="电影名称" prop="name">
@@ -248,7 +248,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="类别">
+        <el-form-item label="类别" prop="categories">
           <el-select
             v-model="temp.categories"
             multiple
@@ -354,20 +354,23 @@ export default {
       // 上传图片的接口地址
       uploadUrl: "http://127.0.0.1:8080/api/upload",
       rules: {
-        type: [
-          { required: true, message: "type is required", trigger: "change" }
-        ],
-        timestamp: [
+        name: [{ required: true, message: "电影名称必填", trigger: "blur" }],
+        duration: [{ required: true, message: "时长必填", trigger: "blur" }],
+        actors: [{ required: true, message: "主演必填", trigger: "blur" }],
+        directors: [{ required: true, message: "导演必填", trigger: "blur" }],
+        releaseDate: [
           {
             type: "date",
             required: true,
-            message: "timestamp is required",
+            message: "上映日期必填",
             trigger: "change"
           }
         ],
-        title: [
-          { required: true, message: "title is required", trigger: "blur" }
-        ]
+        plot: [{ required: true, message: "剧情必填", trigger: "blur" }],
+        categories: [
+          { required: true, message: "类别必填", trigger: "change" }
+        ],
+        status: [{ required: true, message: "状态必填", trigger: "change" }]
       }
     };
   },
