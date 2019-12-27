@@ -154,26 +154,17 @@ export default {
       this.listQuery = {
         page: 1,
         size: 20,
-        name: undefined,
-        status: undefined,
-        duration: undefined,
-        categories: []
+        title: undefined,
+        createTime: undefined
       };
     },
     // 重置临时对象
     resetTemp() {
       this.temp = {
         id: undefined,
-        name: undefined,
-        duration: 0,
-        directors: undefined,
-        actors: undefined,
-        releaseDate: new Date(),
-        plot: undefined,
-        poster: undefined,
-        country: undefined,
-        status: 0,
-        categories: []
+        title: undefined,
+        content: undefined,
+        createTime: new Date()
       };
     },
     // 点击添加按钮
