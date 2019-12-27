@@ -11,10 +11,9 @@
       />
       <el-date-picker
         v-model="listQuery.showtime"
-        type="date"
+        type="datetime"
         placeholder="选择场次日期"
-      >
-      </el-date-picker>
+      />
 
       <el-button
         class="filter-item"
@@ -126,7 +125,6 @@
         label-width="70px"
         style="margin-left: 20px;"
       >
-        <!-- todo -->
         <el-form-item label="电影" prop="movieName">
           <el-select v-model="temp.movieId" placeholder="请输入电影名称">
             <el-option
@@ -146,10 +144,10 @@
           <el-input-number v-model="temp.seatNum" :min="0" />
         </el-form-item>
 
-        <el-form-item label="上映日期" prop="releaseDate">
+        <el-form-item label="上映日期" prop="showtime">
           <el-date-picker
-            v-model="temp.releaseDate"
-            type="date"
+            v-model="temp.showtime"
+            type="datetime"
             placeholder="请输入上映日期"
           />
         </el-form-item>
@@ -204,7 +202,7 @@ export default {
         id: undefined,
         movieId: undefined,
         price: undefined,
-        seatNum: undefined,
+        seatNum: 166,
         showtime: new Date(),
         bookedSeat: undefined
       },
@@ -268,7 +266,7 @@ export default {
         movieId: undefined,
         movieName: undefined,
         price: undefined,
-        seatNum: undefined,
+        seatNum: 166,
         showtime: new Date(),
         bookedSeat: undefined
       };
