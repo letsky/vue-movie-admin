@@ -57,7 +57,7 @@ export const constantRoutes = [
     children: [
       {
         path: "index",
-        name: "Form",
+        name: "movie",
         component: () => import("@/views/movie/index"),
         meta: { title: "电影管理", icon: "form" }
       }
@@ -69,9 +69,21 @@ export const constantRoutes = [
     children: [
       {
         path: "index",
-        name: "Form",
+        name: "category",
         component: () => import("@/views/category/index"),
         meta: { title: "类别管理", icon: "form" }
+      }
+    ]
+  },
+  {
+    path: "/news",
+    component: Layout,
+    children: [
+      {
+        path: "index",
+        name: "news",
+        component: () => import("@/views/news/index"),
+        meta: { title: "资讯管理", icon: "form" }
       }
     ]
   },
@@ -81,9 +93,21 @@ export const constantRoutes = [
     children: [
       {
         path: "index",
-        name: "Form",
+        name: "scene",
         component: () => import("@/views/scene/index"),
         meta: { title: "场次管理", icon: "form" }
+      }
+    ]
+  },
+  {
+    path: "/user",
+    component: Layout,
+    children: [
+      {
+        path: "index",
+        name: "user",
+        component: () => import("@/views/user/index"),
+        meta: { title: "用户管理", icon: "form" }
       }
     ]
   },
