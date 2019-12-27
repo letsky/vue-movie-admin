@@ -4,7 +4,7 @@
     <div class="filter-container">
       <el-input
         v-model="listQuery.name"
-        placeholder="请输入电影名称"
+        placeholder="请输入标题"
         style="width: 200px;"
         class="filter-item"
         @keyup.enter.native="handleFilter"
@@ -15,34 +15,7 @@
         placeholder="创建时间"
       >
       </el-date-picker>
-      <el-select
-        v-model="listQuery.categories"
-        placeholder="电影类型"
-        multiple
-        clearable
-        filterable
-        style="width: 200px"
-      >
-        <el-option
-          v-for="item in categoryOptions"
-          :key="item.id"
-          :label="item.name"
-          :value="item.id"
-        />
-      </el-select>
-      <el-select
-        v-model="listQuery.status"
-        placeholder="状态"
-        clearable
-        style="width: 130px"
-      >
-        <el-option
-          v-for="item in statusOptions"
-          :key="item.key"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
+
       <el-button
         class="filter-item"
         type="primary"
@@ -86,51 +59,17 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="电影名称" width="400">
+      <el-table-column label="标题">
         <template slot-scope="{ row }">
-          <span class="link-type">{{ row.name }}</span>
+          <router-link :to="'/news/' + row.id" class="link-type">
+            <span>{{ row.title }}</span>
+          </router-link>
         </template>
       </el-table-column>
 
-      <el-table-column label="时长" align="center" width="50">
+      <el-table-column label="创建时间" width="200" align="center">
         <template slot-scope="{ row }">
-          <span>{{ row.duration }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="上映日期" width="150" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.releaseDate }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="导演" width="110" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.directors }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="主演" width="200" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.actors }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="国家" width="110px" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.country }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="状态" align="center" width="80">
-        <template slot-scope="{ row }">
-          <el-tag>{{ row.status | statusFilter }}</el-tag>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="类别" align="center">
-        <template slot-scope="{ row }">
-          <span>{{ row.categories | categoryFilter }}</span>
+          <span>{{ row.createTime }}</span>
         </template>
       </el-table-column>
 
@@ -159,6 +98,7 @@
     <el-dialog
       :title="textMap[dialogStatus]"
       :visible.sync="dialogFormVisible"
+      @close="closeDialog"
       top="2vh"
     >
       <el-form
@@ -169,85 +109,8 @@
         label-width="70px"
         style="margin-left:20px;"
       >
-        <el-form-item label="电影名称" prop="name">
-          <el-input v-model="temp.name" placeholder="请输入电影名称" />
-        </el-form-item>
-
-        <el-form-item label="海报" prop="poster">
-          <el-upload
-            class="avatar-uploader"
-            :action="uploadUrl"
-            :limit="1"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :before-upload="beforeAvatarUpload"
-          >
-            <img v-if="temp.poster" :src="temp.poster" class="avatar" />
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-            <div class="el-upload__tip" slot="tip">
-              只能上传jpg/png文件，且不超过500kb
-            </div>
-          </el-upload>
-        </el-form-item>
-
-        <el-form-item label="时长" prop="duration">
-          <el-input-number v-model="temp.duration" :min="0" />
-        </el-form-item>
-
-        <el-form-item label="主演" prop="actors">
-          <el-input v-model="temp.actors" placeholder="请输入主演" />
-        </el-form-item>
-
-        <el-form-item label="导演" prop="directors">
-          <el-input v-model="temp.directors" placeholder="请输入导演" />
-        </el-form-item>
-
-        <el-form-item label="上映日期" prop="releaseDate">
-          <el-date-picker
-            v-model="temp.releaseDate"
-            type="date"
-            placeholder="请输入上映日期"
-          />
-        </el-form-item>
-
-        <el-form-item label="剧情" prop="plot">
-          <el-input
-            v-model="temp.plot"
-            placeholder="请输入剧情"
-            type="textarea"
-            :autosize="{ minRows: 2, maxRows: 4 }"
-          />
-        </el-form-item>
-
-        <el-form-item label="国家" prop="country">
-          <el-input v-model="temp.country" placeholder="请输入国家" />
-        </el-form-item>
-
-        <el-form-item label="上映状态" prop="status">
-          <el-select v-model="temp.status" placeholder="请选择状态">
-            <el-option
-              v-for="item in statusOptions"
-              :key="item.id"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="类别">
-          <el-select
-            v-model="temp.categories"
-            multiple
-            filterable
-            placeholder="请选择类别"
-          >
-            <el-option
-              v-for="item in categoryOptions"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="temp.title" placeholder="请输入资讯标题" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -269,33 +132,12 @@
 import { fetchList, createNews, updateNews, deleteNews } from "@/api/news";
 import Pagination from "@/components/Pagination";
 
-//状态下拉框选项
-const statusOptions = [
-  { id: 1, label: "下架", value: 0 },
-  { id: 2, label: "上架", value: 1 }
-];
-
 export default {
-  name: "movie",
+  name: "news",
   components: { Pagination },
-  filters: {
-    //转换状态
-    statusFilter(status) {
-      const statusMap = {
-        0: "下架",
-        1: "上架"
-      };
-      return statusMap[status];
-    },
-    //转换类别
-    categoryFilter(categories) {
-      return categories.map(c => c.name).join(",");
-    }
-  },
-  computed: {},
   data() {
     return {
-      tableKey: 0,
+      tableKey: 3,
       // 列表数据
       list: null,
       // 总数
@@ -307,7 +149,6 @@ export default {
         page: 1,
         size: 20,
         title: undefined,
-        content: undefined,
         createTime: undefined
       },
       // 弹出框临时对象
@@ -320,21 +161,9 @@ export default {
       dialogFormVisible: false,
       dialogStatus: "",
       textMap: { update: "修改", create: "创建" },
+      // 校验规则
       rules: {
-        type: [
-          { required: true, message: "type is required", trigger: "change" }
-        ],
-        timestamp: [
-          {
-            type: "date",
-            required: true,
-            message: "timestamp is required",
-            trigger: "change"
-          }
-        ],
-        title: [
-          { required: true, message: "title is required", trigger: "blur" }
-        ]
+        title: [{ required: true, message: "标题必填", trigger: "blur" }]
       }
     };
   },
@@ -394,6 +223,7 @@ export default {
     // 创建新数据
     createData() {
       this.$refs["dataForm"].validate(valid => {
+        //校验表单
         if (valid) {
           const tempData = Object.assign({}, this.temp);
           console.log(tempData);
@@ -418,8 +248,6 @@ export default {
     handleUpdate(row) {
       this.temp = Object.assign({}, row); // copy obj
       console.log(this.temp);
-      const c = this.temp.categories;
-      this.temp.categories = c.map(e => e.id);
       this.dialogStatus = "update";
       this.dialogFormVisible = true;
       this.$nextTick(() => {
@@ -451,20 +279,26 @@ export default {
     },
     // 删除按钮
     handleDelete(row) {
-      const movieId = row.id;
-      deleteMovie(movieId)
+      const id = row.id;
+      deleteMovie(id)
         .then(response => {
+          // 重新请求数据
+          this.getList();
           this.$notify({
             title: "Success",
             message: "Delete Successfully",
             type: "success",
             duration: 2000
           });
-          const index = this.list.indexOf(row);
-          this.list.splice(index, 1);
         })
         .catch(error => console.log(error));
     }
   }
 };
 </script>
+<style lang="css" scoped>
+.link-type {
+  color: #337ab7;
+  cursor: pointer;
+}
+</style>
