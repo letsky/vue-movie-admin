@@ -93,38 +93,6 @@
       :size.sync="listQuery.size"
       @pagination="getList"
     />
-
-    <!-- 创建/更新 弹出框 -->
-    <el-dialog
-      :title="textMap[dialogStatus]"
-      :visible.sync="dialogFormVisible"
-      @close="closeDialog"
-      top="2vh"
-    >
-      <el-form
-        ref="dataForm"
-        :rules="rules"
-        :model="temp"
-        label-position="left"
-        label-width="70px"
-        style="margin-left:20px;"
-      >
-        <el-form-item label="标题" prop="title">
-          <el-input v-model="temp.title" placeholder="请输入资讯标题" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          @click="dialogStatus === 'create' ? createData() : updateData()"
-        >
-          确认
-        </el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -158,9 +126,6 @@ export default {
         content: undefined,
         createTime: new Date()
       },
-      dialogFormVisible: false,
-      dialogStatus: "",
-      textMap: { update: "修改", create: "创建" },
       // 校验规则
       rules: {
         title: [{ required: true, message: "标题必填", trigger: "blur" }]
